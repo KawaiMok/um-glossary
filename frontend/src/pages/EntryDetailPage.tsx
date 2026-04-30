@@ -70,11 +70,23 @@ export default function EntryDetailPage() {
 
   return (
     <section className="page-section">
-      <h2>{entry.termZh}</h2>
-      <p>{entry.termEn}</p>
-      <button type="button" onClick={toggleFavorite}>
-        {isFavorite ? '取消收藏' : '加入收藏'}
-      </button>
+      <h2>詞條詳情 / 編輯</h2>
+      <div className="detail-header">
+        <div>
+          <h3>{entry.termZh}</h3>
+          <p>{entry.termEn}</p>
+        </div>
+        <button type="button" className="btn btn-secondary" onClick={toggleFavorite}>
+          {isFavorite ? '★ 已收藏' : '☆ 加入收藏'}
+        </button>
+
+        <button type="button" className="btn btn-primary" onClick={handleSave}>
+          儲存修改
+        </button>
+        {saveMessage ? <p>{saveMessage}</p> : null}
+      </div>
+
+      <h4 className="section-title">編輯內容</h4>
       <div className="form-grid">
         <label>
           中文
@@ -108,8 +120,7 @@ export default function EntryDetailPage() {
           />
         </label>
       </div>
-      <button type="button" onClick={handleSave}>儲存修改</button>
-      {saveMessage ? <p>{saveMessage}</p> : null}
+      
     </section>
   )
 }

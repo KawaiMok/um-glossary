@@ -44,8 +44,10 @@ export default function SearchPage() {
 
   return (
     <section className="page-section">
-      <h2>Search</h2>
+      <h2>搜尋詞條</h2>
+      <p>輸入中文、英文、縮寫或 code，系統會即時篩選結果。</p>
       <input
+        className="search-input"
         value={keyword}
         onChange={(event) => setKeyword(event.target.value)}
         placeholder="搜尋中文、英文、縮寫..."

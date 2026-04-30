@@ -24,10 +24,10 @@ export default function RecentPage() {
 
   return (
     <section className="page-section">
-      <h2>Recent</h2>
+      <h2>最近紀錄</h2>
       <h3>最近搜尋關鍵字</h3>
       {keywords.length === 0 ? <p>暫無關鍵字紀錄。</p> : null}
-      <ul>
+      <ul className="keyword-list">
         {keywords.map((item) => (
           <li key={item}>{item}</li>
         ))}

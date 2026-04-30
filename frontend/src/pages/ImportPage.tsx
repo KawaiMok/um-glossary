@@ -101,7 +101,8 @@ export default function ImportPage() {
 
   return (
     <section className="page-section">
-      <h2>Import</h2>
+      <h2>資料匯入</h2>
+      <p>先做檢驗，再由你確認工作表與資料後才會正式上傳。</p>
       <div className="upload-panel">
         <input
           type="file"
@@ -160,6 +161,40 @@ export default function ImportPage() {
                   <p>
                     總列數：{item.dataRowCount}，有效：{item.validCount}，無效：{item.invalidCount}
                   </p>
+                  {!item.hasRequiredColumns ? (
+                    <p className="error-text">缺少必要欄位：{item.requiredMissing.join(', ')}</p>
+                  ) : null}
+
+                  <details>
+                    <summary>檢視逐列明細（有效 / 無效）</summary>
+                    <div className="record-table-wrapper">
+                      <table className="record-table">
+                        <thead>
+                          <tr>
+                            <th>Row</th>
+                            <th>CN</th>
+                            <th>EN</th>
+                            <th>狀態</th>
+                            <th>原因</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {item.records.map((record) => (
+                            <tr
+                              key={`${item.name}-${record.rowNumber}`}
+                              className={record.isValid ? 'ok-row' : 'bad-row'}
+                            >
+                              <td>{record.rowNumber}</td>
+                              <td>{record.cn || '-'}</td>
+                              <td>{record.en || '-'}</td>
+                              <td>{record.isValid ? '有效' : '無效'}</td>
+                              <td>{record.reason || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
                 </article>
               ))}
             </div>

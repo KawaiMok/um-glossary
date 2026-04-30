@@ -18,7 +18,7 @@ export default function FavoritesPage() {
 
   return (
     <section className="page-section">
-      <h2>Favorites</h2>
+      <h2>我的收藏</h2>
       {items.length === 0 ? <p>尚未收藏任何詞條。</p> : null}
       <div className="entry-list">
         {items.map((entry) => (

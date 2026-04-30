@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import EntryDetailPage from './pages/EntryDetailPage'
 import FavoritesPage from './pages/FavoritesPage'
@@ -11,12 +11,12 @@ function App() {
     <main className="app">
       <header className="app__header">
         <h1>UM Glossary</h1>
-        <p>無 Database MVP：Excel 匯入 -&gt; JSON 查詢</p>
+        <p>中英詞彙查詢平台（支援 Excel 檢驗上傳與多工作表匯入）</p>
         <nav className="nav-links">
-          <Link to="/search">Search</Link>
-          <Link to="/favorites">Favorites</Link>
-          <Link to="/recent">Recent</Link>
-          <Link to="/import">Import</Link>
+          <NavLink to="/search">搜尋</NavLink>
+          <NavLink to="/favorites">收藏</NavLink>
+          <NavLink to="/recent">最近</NavLink>
+          <NavLink to="/import">匯入</NavLink>
         </nav>
       </header>
       <Routes>

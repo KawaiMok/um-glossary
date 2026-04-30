@@ -10,12 +10,20 @@ type Props = {
 export default function EntryCard({ entry, favorite, onToggleFavorite }: Props) {
   return (
     <article className="entry-card" key={entry.id}>
-      <Link to={`/entry/${entry.id}`} className="edit-btn" aria-label="查看詳情（編輯）">
-        ✎
-      </Link>
-      <button type="button" className="star-btn" onClick={() => onToggleFavorite(entry.id)} aria-label="切換收藏">
-        {favorite ? '★' : '☆'}
-      </button>
+      <div className="card-actions">
+        <Link to={`/entry/${entry.id}`} className="edit-btn" aria-label="查看詳情（編輯）" title="查看/編輯">
+          ✎
+        </Link>
+        <button
+          type="button"
+          className="star-btn"
+          onClick={() => onToggleFavorite(entry.id)}
+          aria-label="切換收藏"
+          title={favorite ? '取消收藏' : '加入收藏'}
+        >
+          {favorite ? '★' : '☆'}
+        </button>
+      </div>
       <h3>{entry.termZh}</h3>
       <p>{entry.termEn}</p>
       {entry.code ? (

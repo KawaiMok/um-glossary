@@ -1,12 +1,12 @@
 .app {
-  max-width: 860px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 24px 16px 40px;
+  padding: 28px 18px 48px;
 }
 
 .app__header h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: 34px;
 }
 
 .app__header p {
@@ -23,14 +23,35 @@
 
 .nav-links a {
   text-decoration: none;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 6px 12px;
   color: #1f2937;
+  background: #fff;
+  transition: all 0.15s ease;
+}
+
+.nav-links a:hover {
+  border-color: #94a3b8;
+}
+
+.nav-links a.active {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
 }
 
 .page-section {
   margin-top: 18px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.page-section h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
 }
 
 .search-panel {
@@ -47,6 +68,15 @@
   font-size: 16px;
   padding: 0 12px;
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-panel input:focus,
+.page-section input:focus,
+.page-section textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .upload-panel {
@@ -58,13 +88,14 @@
 }
 
 .upload-panel button {
-  height: 36px;
+  height: 40px;
   border: none;
   border-radius: 8px;
-  padding: 0 12px;
+  padding: 0 14px;
   background: #2563eb;
   color: #fff;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .upload-panel button:disabled {
@@ -153,13 +184,14 @@
 
 .modal__header button,
 .modal__footer button {
-  height: 34px;
+  height: 38px;
   border: none;
   border-radius: 8px;
-  padding: 0 12px;
+  padding: 0 14px;
   background: #2563eb;
   color: #fff;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .modal__summary {
@@ -244,16 +276,23 @@
 .entry-list {
   margin-top: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .entry-card {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 14px;
+  padding: 14px 14px 12px;
   text-align: left;
   background: #ffffff;
   position: relative;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.entry-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
 }
 
 .entry-card h2 {
@@ -271,28 +310,46 @@
   color: #374151;
 }
 
-.star-btn {
+.card-actions {
   position: absolute;
   right: 10px;
   top: 10px;
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  cursor: pointer;
-  color: #f59e0b;
+  display: flex;
+  gap: 6px;
 }
 
 .edit-btn {
-  position: absolute;
-  right: 40px;
-  top: 11px;
   text-decoration: none;
-  border: none;
-  background: transparent;
-  font-size: 18px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
   cursor: pointer;
   color: #2563eb;
+  transition: transform 0.1s ease;
+}
+
+.star-btn {
+  border: 1px solid #fde68a;
+  background: #fefce8;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 15px;
+  cursor: pointer;
+  color: #b45309;
   line-height: 1;
+  transition: transform 0.1s ease;
+}
+
+.edit-btn:hover,
+.star-btn:hover {
+  transform: scale(1.06);
 }
 
 .text-block {
@@ -349,4 +406,45 @@
 .form-grid textarea {
   min-height: 74px;
   resize: vertical;
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+}
+
+.keyword-list li {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 16px 10px 24px;
+  }
+
+  .app__header h1 {
+    font-size: 28px;
+  }
+
+  .page-section {
+    padding: 12px;
+  }
+
+  .entry-card {
+    padding: 12px 12px 10px;
+  }
+
+  .card-actions {
+    right: 8px;
+    top: 8px;
+  }
 }
