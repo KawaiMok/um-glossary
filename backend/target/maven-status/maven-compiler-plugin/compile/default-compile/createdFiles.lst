@@ -1,0 +1,8 @@
+com/umglossary/backend/controller/ImportController.class
+com/umglossary/backend/model/ImportResult.class
+com/umglossary/backend/UmGlossaryApplication.class
+com/umglossary/backend/service/ImportService.class
+com/umglossary/backend/controller/GlossaryController.class
+com/umglossary/backend/model/GlossaryEntry.class
+com/umglossary/backend/service/GlossaryService.class
+com/umglossary/backend/service/GlossaryService$1.class
