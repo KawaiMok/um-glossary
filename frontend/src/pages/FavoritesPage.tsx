@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Alert, Stack, Typography } from '@mui/material'
 import EntryCard from '../components/EntryCard'
 import { fetchEntryDetail } from '../services/api'
 import type { GlossaryEntry } from '../types'
@@ -17,10 +18,10 @@ export default function FavoritesPage() {
   }, [])
 
   return (
-    <section className="page-section">
-      <h2>我的收藏</h2>
-      {items.length === 0 ? <p>尚未收藏任何詞條。</p> : null}
-      <div className="entry-list">
+    <Stack spacing={2}>
+      <Typography variant="h5" sx={{ fontWeight: 700 }}>我的收藏</Typography>
+      {items.length === 0 ? <Alert severity="info">尚未收藏任何詞條。</Alert> : null}
+      <Stack spacing={1.5}>
         {items.map((entry) => (
           <EntryCard
             key={entry.id}
@@ -32,7 +33,7 @@ export default function FavoritesPage() {
             }}
           />
         ))}
-      </div>
-    </section>
+      </Stack>
+    </Stack>
   )
 }

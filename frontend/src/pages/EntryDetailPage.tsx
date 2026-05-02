@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import StarIcon from '@mui/icons-material/Star'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
+import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { fetchEntryDetail, updateEntry } from '../services/api'
 import type { GlossaryEntry } from '../types'
 import { isFavorite as isFavoriteStorage, toggleFavorite as toggleFavoriteStorage } from '../utils/storage'
@@ -65,63 +68,47 @@ export default function EntryDetailPage() {
     }
   }
 
-  if (error) return <p className="error-text">{error}</p>
-  if (!entry) return <p>載入中...</p>
+  if (error) return <Alert severity="error">{error}</Alert>
+  if (!entry) return <Alert severity="info">載入中...</Alert>
 
   return (
-    <section className="page-section">
-      <h2>詞條詳情 / 編輯</h2>
-      <div className="detail-header">
-        <div>
-          <h3>{entry.termZh}</h3>
-          <p>{entry.termEn}</p>
-        </div>
-        <button type="button" className="btn btn-secondary" onClick={toggleFavorite}>
-          {isFavorite ? '★ 已收藏' : '☆ 加入收藏'}
-        </button>
+    <Stack spacing={2}>
+      <Typography variant="h5" sx={{ fontWeight: 700 }}>詞條詳情 / 編輯</Typography>
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{entry.termZh}</Typography>
+            <Typography color="text.secondary">{entry.termEn}</Typography>
+          </Box>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={toggleFavorite}
+              startIcon={isFavorite ? <StarIcon /> : <StarBorderIcon />}
+            >
+              {isFavorite ? '已收藏' : '加入收藏'}
+            </Button>
+            <Button variant="contained" onClick={handleSave}>儲存修改</Button>
+          </Stack>
+        </Stack>
+      </Paper>
 
-        <button type="button" className="btn btn-primary" onClick={handleSave}>
-          儲存修改
-        </button>
-        {saveMessage ? <p>{saveMessage}</p> : null}
-      </div>
+      {saveMessage ? <Alert severity={saveMessage.includes('失敗') ? 'error' : 'success'}>{saveMessage}</Alert> : null}
 
-      <h4 className="section-title">編輯內容</h4>
-      <div className="form-grid">
-        <label>
-          中文
-          <input value={form.termZh ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, termZh: e.target.value }))} />
-        </label>
-        <label>
-          英文
-          <input value={form.termEn ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, termEn: e.target.value }))} />
-        </label>
-        <label>
-          Code
-          <input value={form.code ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))} />
-        </label>
-        <label>
-          Example EN
-          <textarea value={form.exampleEn ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, exampleEn: e.target.value }))} />
-        </label>
-        <label>
-          Example ZH
-          <textarea value={form.exampleZh ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, exampleZh: e.target.value }))} />
-        </label>
-        <label>
-          Remark
-          <textarea value={form.remarks ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))} />
-        </label>
-        <label>
-          Abbrev (每行一個)
-          <textarea
-            value={abbreviationsText}
-            onChange={(e) => setAbbreviationsText(e.target.value)}
-          />
-        </label>
-      </div>
-      
-    </section>
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Stack spacing={1.5}>
+          <Typography variant="h6">編輯內容</Typography>
+          <TextField label="中文" value={form.termZh ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, termZh: e.target.value }))} size="small" />
+          <TextField label="英文" value={form.termEn ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, termEn: e.target.value }))} size="small" />
+          <TextField label="Code" value={form.code ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))} size="small" />
+          <TextField label="Example EN" value={form.exampleEn ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, exampleEn: e.target.value }))} multiline minRows={3} />
+          <TextField label="Example ZH" value={form.exampleZh ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, exampleZh: e.target.value }))} multiline minRows={3} />
+          <TextField label="Remark" value={form.remarks ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))} multiline minRows={3} />
+          <TextField label="Abbrev (每行一個)" value={abbreviationsText} onChange={(e) => setAbbreviationsText(e.target.value)} multiline minRows={3} />
+        </Stack>
+      </Paper>
+    </Stack>
   )
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Alert, Chip, Stack, Typography } from '@mui/material'
 import EntryCard from '../components/EntryCard'
 import { fetchEntryDetail } from '../services/api'
 import type { GlossaryEntry } from '../types'
@@ -23,19 +24,19 @@ export default function RecentPage() {
   }, [])
 
   return (
-    <section className="page-section">
-      <h2>最近紀錄</h2>
-      <h3>最近搜尋關鍵字</h3>
-      {keywords.length === 0 ? <p>暫無關鍵字紀錄。</p> : null}
-      <ul className="keyword-list">
+    <Stack spacing={2}>
+      <Typography variant="h5" sx={{ fontWeight: 700 }}>最近紀錄</Typography>
+      <Typography variant="h6">最近搜尋關鍵字</Typography>
+      {keywords.length === 0 ? <Alert severity="info">暫無關鍵字紀錄。</Alert> : null}
+      <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
         {keywords.map((item) => (
-          <li key={item}>{item}</li>
+          <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
         ))}
-      </ul>
+      </Stack>
 
-      <h3>最近查看詞條</h3>
-      {recentEntries.length === 0 ? <p>暫無詞條查看紀錄。</p> : null}
-      <div className="entry-list">
+      <Typography variant="h6">最近查看詞條</Typography>
+      {recentEntries.length === 0 ? <Alert severity="info">暫無詞條查看紀錄。</Alert> : null}
+      <Stack spacing={1.5}>
         {recentEntries.map((entry) => (
           <EntryCard
             key={entry.id}
@@ -47,7 +48,7 @@ export default function RecentPage() {
             }}
           />
         ))}
-      </div>
-    </section>
+      </Stack>
+    </Stack>
   )
 }

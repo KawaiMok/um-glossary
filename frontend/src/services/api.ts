@@ -2,8 +2,8 @@ import type { GlossaryEntry, ImportResponse } from '../types'
 
 const API_BASE_URL = 'http://localhost:8080/api'
 
-export async function fetchEntries(keyword: string): Promise<GlossaryEntry[]> {
-  const response = await fetch(`${API_BASE_URL}/entries?q=${encodeURIComponent(keyword.trim())}`)
+export async function fetchEntries(keyword: string, signal?: AbortSignal): Promise<GlossaryEntry[]> {
+  const response = await fetch(`${API_BASE_URL}/entries?q=${encodeURIComponent(keyword.trim())}`, { signal })
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
