@@ -10,8 +10,8 @@ spring:
   sql:
     init:
       mode: always
-      # 註解：確保每次啟動至少會建立表（CREATE IF NOT EXISTS 是安全的）。
-      platform: postgres
+      # 註解：明確指定 schema 檔案位置，避免因 platform 命名規則找不到或跑錯檔名。
+      schema-locations: classpath:schema.sql
   servlet:
     multipart:
       max-file-size: 10MB
