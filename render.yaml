@@ -22,8 +22,10 @@ services:
     name: um-glossary-frontend
     runtime: static
     rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    # 註解：有些 Render 建置流程會在 repo root 執行指令；用 cd 避免找不到 lockfile。
+    buildCommand: cd frontend && npm ci && npm run build
+    # 註解：同理，publish path 也用 repo root 相對路徑，避免 rootDir 沒生效。
+    staticPublishPath: frontend/dist
     envVars:
       # 註解：先用 placeholder；建立 backend 後，把它改成 backend 的公開 URL，例如：
       # https://um-glossary-backend.onrender.com/api
