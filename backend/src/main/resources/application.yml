@@ -4,8 +4,9 @@ server:
 
 spring:
   datasource:
-    # 註解：請在 Render 環境變數設定 DATABASE_URL（Neon 提供的 postgresql://...）
-    url: ${DATABASE_URL:}
+    # 註解：Spring JDBC 需要 jdbc: 開頭；建議在 Render 設 JDBC_DATABASE_URL 或 SPRING_DATASOURCE_URL。
+    # 例如：jdbc:postgresql://<host>/<db>?sslmode=require&user=...&password=...
+    url: ${SPRING_DATASOURCE_URL:${JDBC_DATABASE_URL:}}
   sql:
     init:
       mode: always
