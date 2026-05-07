@@ -2,16 +2,11 @@ services:
   # 註解：後端 Spring Boot（Web Service）
   - type: web
     name: um-glossary-backend
-    runtime: java
+    # 註解：Render UI 沒看到 Java runtime 時，改用 Docker 最穩定
+    runtime: docker
     rootDir: backend
-    buildCommand: mvn -DskipTests package
-    # 註解：避免 jar 檔名被版本影響，用萬用字元啟動
-    startCommand: java -jar target/*.jar
     healthCheckPath: /api/health
     envVars:
-      # 註解：Spring Boot 3.3.x + pom 設定是 Java 21
-      - key: JAVA_VERSION
-        value: 21
       # 註解：把資料與備份放到持久化磁碟（見 disks）
       - key: APP_GLOSSARY_JSON_PATH
         value: /var/data/glossary.json
