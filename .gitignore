@@ -1,0 +1,9 @@
+# 註解：通用
+.DS_Store
+
+# 註解：Java / Maven build artifacts
+backend/target/
+
+# 註解：執行時資料（部署時由 Render disk 提供/產生）
+backend/data/backups/
+

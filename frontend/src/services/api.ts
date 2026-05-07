@@ -1,6 +1,8 @@
 import type { GlossaryEntry, ImportResponse } from '../types'
 
-const API_BASE_URL = 'http://localhost:8080/api'
+// 註解：部署到 Render / Vercel 時，用環境變數注入 API 位置（Vite 只會暴露 VITE_*）。
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8080/api'
 
 export async function fetchEntries(keyword: string, signal?: AbortSignal): Promise<GlossaryEntry[]> {
   const response = await fetch(`${API_BASE_URL}/entries?q=${encodeURIComponent(keyword.trim())}`, { signal })

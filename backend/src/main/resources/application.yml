@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # 註解：Render 會用 $PORT 指定對外 port，這裡要能吃到環境變數。
+  port: ${PORT:8080}
 
 spring:
   servlet:
@@ -9,6 +10,7 @@ spring:
 
 app:
   data:
-    glossary-json-path: data/glossary.json
-    backup-dir: data/backups
+    # 註解：Render 檔案系統是 ephemeral；要持久化請掛載 disk，並把路徑指到 mountPath。
+    glossary-json-path: ${APP_GLOSSARY_JSON_PATH:data/glossary.json}
+    backup-dir: ${APP_BACKUP_DIR:data/backups}
     target-sheet: UM Title

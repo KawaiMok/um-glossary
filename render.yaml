@@ -1,0 +1,36 @@
+services:
+  # 註解：後端 Spring Boot（Web Service）
+  - type: web
+    name: um-glossary-backend
+    runtime: java
+    rootDir: backend
+    buildCommand: mvn -DskipTests package
+    # 註解：避免 jar 檔名被版本影響，用萬用字元啟動
+    startCommand: java -jar target/*.jar
+    healthCheckPath: /api/health
+    envVars:
+      # 註解：Spring Boot 3.3.x + pom 設定是 Java 21
+      - key: JAVA_VERSION
+        value: 21
+      # 註解：把資料與備份放到持久化磁碟（見 disks）
+      - key: APP_GLOSSARY_JSON_PATH
+        value: /var/data/glossary.json
+      - key: APP_BACKUP_DIR
+        value: /var/data/backups
+    disks:
+      - name: glossary-data
+        mountPath: /var/data
+        sizeGB: 1
+
+  # 註解：前端 Vite（Static Site）
+  - type: web
+    name: um-glossary-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # 註解：先用 placeholder；建立 backend 後，把它改成 backend 的公開 URL，例如：
+      # https://um-glossary-backend.onrender.com/api
+      - key: VITE_API_BASE_URL
+        value: REPLACE_ME_BACKEND_URL/api
