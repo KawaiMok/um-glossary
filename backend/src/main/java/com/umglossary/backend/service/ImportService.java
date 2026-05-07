@@ -1,6 +1,7 @@
 package com.umglossary.backend.service;
 
 import com.umglossary.backend.model.GlossaryEntry;
+import com.umglossary.backend.model.ImportEntriesRequest;
 import com.umglossary.backend.model.ImportResult;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -88,6 +89,115 @@ public class ImportService {
         glossaryService.replaceAll(importedEntries);
 
         return new ImportResult(importedEntries.size(), errors.size(), backupFileName, errors);
+    }
+
+    // 註解：方案 C - 前端先解析成 JSON；後端只做驗證、正規化與寫入。
+    public ImportResult importFromEntries(ImportEntriesRequest request) throws IOException {
+        if (request == null || request.sheets() == null || request.sheets().isEmpty()) {
+            return new ImportResult(0, 1, null, List.of("未提供可匯入的工作表"));
+        }
+
+        List<GlossaryEntry> importedEntries = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+
+        for (ImportEntriesRequest.ImportSheetPayload sheet : request.sheets()) {
+            if (sheet == null || sheet.name() == null || sheet.name().isBlank()) {
+                errors.add("工作表名稱為空");
+                continue;
+            }
+            if (sheet.rows() == null || sheet.rows().isEmpty()) {
+                continue;
+            }
+            importRows(sheet.name().trim(), sheet.rows(), importedEntries, errors);
+        }
+
+        if (importedEntries.isEmpty()) {
+            return new ImportResult(0, errors.size(), null, errors.isEmpty() ? List.of("沒有可匯入的資料") : errors);
+        }
+
+        String backupFileName = backupCurrentJsonIfExists();
+        glossaryService.saveToDisk(importedEntries);
+        glossaryService.replaceAll(importedEntries);
+
+        return new ImportResult(importedEntries.size(), errors.size(), backupFileName, errors);
+    }
+
+    private void importRows(
+            String sheetName,
+            List<ImportEntriesRequest.ImportRowPayload> rows,
+            List<GlossaryEntry> importedEntries,
+            List<String> errors
+    ) {
+        for (ImportEntriesRequest.ImportRowPayload row : rows) {
+            if (row == null) {
+                continue;
+            }
+
+            String cnRaw = safeTrim(row.cn());
+            String enRaw = safeTrim(row.en());
+            String abbrevRaw = safeTrim(row.abbrev());
+            String codeRaw = safeTrim(row.code());
+            String remarksRaw = safeTrim(row.remarks());
+            String exampleZhRaw = safeTrim(row.exampleZh());
+            String exampleEnRaw = safeTrim(row.exampleEn());
+
+            String finalExampleZh = !exampleZhRaw.isBlank() ? exampleZhRaw : "";
+            String finalExampleEn = !exampleEnRaw.isBlank() ? exampleEnRaw : "";
+
+            // 註解：略過完全空白列（前端理論上已濾掉，但後端仍做保護）。
+            if (cnRaw.isBlank() && enRaw.isBlank() && abbrevRaw.isBlank() && remarksRaw.isBlank()
+                    && finalExampleZh.isBlank() && finalExampleEn.isBlank() && codeRaw.isBlank()) {
+                continue;
+            }
+
+            if (cnRaw.isBlank() || enRaw.isBlank()) {
+                errors.add(buildRowError(
+                        sheetName,
+                        row.rowNumber(),
+                        "缺少 <CN> 或 <EN>",
+                        cnRaw,
+                        enRaw
+                ));
+                continue;
+            }
+
+            List<String> zhParts = splitAndClean(cnRaw, "[/／]");
+            List<String> enParts = splitAndClean(enRaw, "[\\n;；]");
+            List<String> abbrevParts = splitAndClean(abbrevRaw, "[,;；\\n]");
+            if (zhParts.isEmpty() || enParts.isEmpty()) {
+                errors.add(buildRowError(
+                        sheetName,
+                        row.rowNumber(),
+                        "解析後無有效中英內容",
+                        cnRaw,
+                        enRaw
+                ));
+                continue;
+            }
+
+            String termZh = zhParts.get(0);
+            String termEn = enParts.get(0);
+            List<String> aliasesZh = zhParts.size() > 1 ? zhParts.subList(1, zhParts.size()) : List.of();
+            List<String> aliasesEn = enParts.size() > 1 ? enParts.subList(1, enParts.size()) : List.of();
+
+            importedEntries.add(GlossaryService.createEntry(
+                    sheetName,
+                    row.rowNumber(),
+                    termZh,
+                    termEn,
+                    codeRaw,
+                    finalExampleZh,
+                    finalExampleEn,
+                    aliasesZh,
+                    aliasesEn,
+                    abbrevParts,
+                    remarksRaw
+            ));
+        }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private void importSheet(Sheet sheet, List<GlossaryEntry> importedEntries, List<String> errors) {

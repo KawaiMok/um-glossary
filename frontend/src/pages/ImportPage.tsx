@@ -27,7 +27,7 @@ import {
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import * as XLSX from 'xlsx'
-import { uploadGlossaryXlsx } from '../services/api'
+import { uploadGlossaryEntries } from '../services/api'
 import type { ImportResponse, SheetInspection, SheetRecord } from '../types'
 
 export default function ImportPage() {
@@ -120,7 +120,70 @@ export default function ImportPage() {
     }
     setUploading(true)
     try {
-      const result = (await uploadGlossaryXlsx(file, selectedSheets)) as ImportResponse
+      // 註解：方案 C - 前端解析 xlsx 成 JSON，上傳到後端，避免後端用 POI 讀檔造成 OOM。
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer, { type: 'array' })
+
+      const normalizeHeader = (value: unknown) => String(value ?? '').trim().toLowerCase()
+      const getHeaderIndex = (headers: string[], ...keys: string[]) => {
+        for (const key of keys) {
+          const idx = headers.indexOf(key)
+          if (idx >= 0) return idx
+        }
+        return -1
+      }
+
+      const payload = {
+        sheets: selectedSheets.map((sheetName) => {
+          const sheet = workbook.Sheets[sheetName]
+          const rows = XLSX.utils.sheet_to_json<(string | number | null)[]>(sheet, { header: 1, defval: '' })
+          const header = (rows[0] ?? []).map(normalizeHeader)
+
+          const cnCol = getHeaderIndex(header, '<cn>')
+          const enCol = getHeaderIndex(header, '<en>')
+          const abbrevCol = getHeaderIndex(header, 'abbrev.', 'abbrev')
+          const codeCol = getHeaderIndex(header, 'code')
+          const remarksCol = getHeaderIndex(header, '*remarks*', 'remarks', 'remark')
+          const exampleCol = getHeaderIndex(header, 'example', 'examples')
+          const exampleZhCol = getHeaderIndex(header, 'example zh', 'example_zh')
+          const exampleEnCol = getHeaderIndex(header, 'example en', 'example_en')
+
+          const safeCell = (row: (string | number | null)[], idx: number) =>
+            idx >= 0 ? String(row[idx] ?? '').trim() : ''
+
+          const sheetRows = rows.slice(1).flatMap((row, idx) => {
+            const isRowEmpty = row.every((cell) => String(cell ?? '').trim() === '')
+            if (isRowEmpty) return []
+
+            const cn = safeCell(row, cnCol)
+            const en = safeCell(row, enCol)
+            const abbrev = safeCell(row, abbrevCol)
+            const code = safeCell(row, codeCol)
+            const remarks = safeCell(row, remarksCol)
+            const example = safeCell(row, exampleCol)
+            const exampleZh = safeCell(row, exampleZhCol)
+            const exampleEn = safeCell(row, exampleEnCol)
+
+            return [
+              {
+                // 註解：rowNumber 以 Excel 1-based 行號表示（含表頭），資料從第 2 行開始。
+                rowNumber: idx + 2,
+                cn,
+                en,
+                abbrev,
+                code,
+                remarks,
+                exampleZh: exampleZh || '',
+                exampleEn: exampleEn || example || '',
+              },
+            ]
+          })
+
+          return { name: sheetName, rows: sheetRows }
+        }),
+      }
+
+      const result = (await uploadGlossaryEntries(payload)) as ImportResponse
       setUploadMessage(`上傳成功：匯入 ${result.successCount} 筆，錯誤 ${result.errorCount} 筆。`)
       setUploadErrors(result.errors ?? [])
       setInspectionOpen(false)

@@ -1,5 +1,6 @@
 package com.umglossary.backend.controller;
 
+import com.umglossary.backend.model.ImportEntriesRequest;
 import com.umglossary.backend.model.ImportResult;
 import com.umglossary.backend.service.ImportService;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,20 @@ public class ImportController {
     ) {
         try {
             ImportResult result = importService.importFromXlsx(file, sheets);
+            return ResponseEntity.ok(result);
+        } catch (IOException exception) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "message", "匯入失敗",
+                    "error", exception.getMessage()
+            ));
+        }
+    }
+
+    // 註解：方案 C - 前端已把 xlsx 解析成 JSON，後端只接收 JSON。
+    @PostMapping("/entries")
+    public ResponseEntity<?> importEntries(@RequestBody ImportEntriesRequest request) {
+        try {
+            ImportResult result = importService.importFromEntries(request);
             return ResponseEntity.ok(result);
         } catch (IOException exception) {
             return ResponseEntity.internalServerError().body(Map.of(
