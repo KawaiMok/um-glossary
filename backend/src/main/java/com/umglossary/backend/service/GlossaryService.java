@@ -1,16 +1,12 @@
 package com.umglossary.backend.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umglossary.backend.model.GlossaryEntry;
+import com.umglossary.backend.repository.GlossaryRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -19,95 +15,57 @@ import java.util.UUID;
 @Service
 public class GlossaryService {
 
-    private final ObjectMapper objectMapper;
-    private final Path glossaryJsonPath;
-    private final List<GlossaryEntry> entries = new ArrayList<>();
+    private final GlossaryRepository repository;
 
-    public GlossaryService(ObjectMapper objectMapper, @Value("${app.data.glossary-json-path}") String glossaryJsonPath) {
-        this.objectMapper = objectMapper;
-        this.glossaryJsonPath = Path.of(glossaryJsonPath);
-        loadFromDisk();
+    public GlossaryService(GlossaryRepository repository, @Value("${app.data.glossary-json-path}") String glossaryJsonPath) {
+        // 註解：保留 glossary-json-path 參數相容舊設定（現階段不再用檔案當主要儲存）。
+        this.repository = repository;
     }
 
     public synchronized List<GlossaryEntry> search(String keyword) {
         if (keyword == null || keyword.isBlank()) {
-            return List.copyOf(entries);
+            return repository.search(null);
         }
-
         String q = keyword.toLowerCase(Locale.ROOT).trim();
-        return entries.stream()
-                .filter(item -> item.searchableText() != null && item.searchableText().toLowerCase(Locale.ROOT).contains(q))
-                .toList();
+        return repository.search(q);
     }
 
     public synchronized Optional<GlossaryEntry> findById(String id) {
-        return entries.stream().filter(item -> item.id().equals(id)).findFirst();
+        return repository.findById(id);
     }
 
     public synchronized Optional<GlossaryEntry> updateEntry(String id, GlossaryEntry payload) throws IOException {
-        int index = -1;
-        for (int i = 0; i < entries.size(); i++) {
-            if (entries.get(i).id().equals(id)) {
-                index = i;
-                break;
-            }
-        }
-        if (index < 0) {
+        Optional<GlossaryEntry> original = repository.findById(id);
+        if (original.isEmpty()) {
             return Optional.empty();
         }
 
-        GlossaryEntry original = entries.get(index);
-        GlossaryEntry updated = new GlossaryEntry(
-                original.id(),
-                original.sourceSheet(),
-                original.sourceRow(),
-                safe(payload.termZh(), original.termZh()),
-                safe(payload.termEn(), original.termEn()),
-                safe(payload.code(), original.code()),
-                safe(payload.exampleZh(), original.exampleZh()),
-                safe(payload.exampleEn(), original.exampleEn()),
-                payload.aliasesZh() == null ? original.aliasesZh() : payload.aliasesZh(),
-                payload.aliasesEn() == null ? original.aliasesEn() : payload.aliasesEn(),
-                payload.abbreviations() == null ? original.abbreviations() : payload.abbreviations(),
-                safe(payload.remarks(), original.remarks()),
-                buildSearchableText(
-                        safe(payload.termZh(), original.termZh()),
-                        safe(payload.termEn(), original.termEn()),
-                        safe(payload.code(), original.code()),
-                        safe(payload.exampleZh(), original.exampleZh()),
-                        safe(payload.exampleEn(), original.exampleEn()),
-                        payload.aliasesZh() == null ? original.aliasesZh() : payload.aliasesZh(),
-                        payload.aliasesEn() == null ? original.aliasesEn() : payload.aliasesEn(),
-                        payload.abbreviations() == null ? original.abbreviations() : payload.abbreviations()
-                ),
+        GlossaryEntry base = original.get();
+        GlossaryEntry merged = new GlossaryEntry(
+                base.id(),
+                base.sourceSheet(),
+                base.sourceRow(),
+                safe(payload.termZh(), base.termZh()),
+                safe(payload.termEn(), base.termEn()),
+                safe(payload.code(), base.code()),
+                safe(payload.exampleZh(), base.exampleZh()),
+                safe(payload.exampleEn(), base.exampleEn()),
+                payload.aliasesZh() == null ? base.aliasesZh() : payload.aliasesZh(),
+                payload.aliasesEn() == null ? base.aliasesEn() : payload.aliasesEn(),
+                payload.abbreviations() == null ? base.abbreviations() : payload.abbreviations(),
+                safe(payload.remarks(), base.remarks()),
+                null,
                 Instant.now().toString()
         );
-        entries.set(index, updated);
-        saveToDisk(entries);
-        return Optional.of(updated);
+        return repository.update(id, merged);
     }
 
     public synchronized void replaceAll(List<GlossaryEntry> newEntries) {
-        entries.clear();
-        entries.addAll(newEntries);
+        repository.replaceAll(newEntries);
     }
 
     public synchronized void saveToDisk(List<GlossaryEntry> newEntries) throws IOException {
-        Files.createDirectories(glossaryJsonPath.getParent());
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(glossaryJsonPath.toFile(), newEntries);
-    }
-
-    private synchronized void loadFromDisk() {
-        if (!Files.exists(glossaryJsonPath)) {
-            return;
-        }
-        try {
-            List<GlossaryEntry> data = objectMapper.readValue(glossaryJsonPath.toFile(), new TypeReference<>() {});
-            entries.clear();
-            entries.addAll(data);
-        } catch (IOException ignored) {
-            // 註解：MVP 階段若讀檔失敗先不中斷服務，待後續加入 logger 與告警。
-        }
+        // 註解：改用 Postgres 後不再把整份 glossary 寫回檔案。
     }
 
     public static GlossaryEntry createEntry(
@@ -123,8 +81,6 @@ public class GlossaryService {
             List<String> abbreviations,
             String remarks
     ) {
-        String searchable = buildSearchableText(termZh, termEn, code, exampleZh, exampleEn, aliasesZh, aliasesEn, abbreviations);
-
         return new GlossaryEntry(
                 UUID.randomUUID().toString(),
                 sourceSheet,
@@ -138,31 +94,9 @@ public class GlossaryService {
                 aliasesEn,
                 abbreviations,
                 remarks,
-                searchable,
+                null,
                 Instant.now().toString()
         );
-    }
-
-    private static String buildSearchableText(
-            String termZh,
-            String termEn,
-            String code,
-            String exampleZh,
-            String exampleEn,
-            List<String> aliasesZh,
-            List<String> aliasesEn,
-            List<String> abbreviations
-    ) {
-        return String.join(" ", List.of(
-                termZh == null ? "" : termZh,
-                termEn == null ? "" : termEn,
-                code == null ? "" : code,
-                exampleZh == null ? "" : exampleZh,
-                exampleEn == null ? "" : exampleEn,
-                String.join(" ", aliasesZh == null ? List.of() : aliasesZh),
-                String.join(" ", aliasesEn == null ? List.of() : aliasesEn),
-                String.join(" ", abbreviations == null ? List.of() : abbreviations)
-        ));
     }
 
     private String safe(String newValue, String oldValue) {

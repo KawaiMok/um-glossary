@@ -3,6 +3,14 @@ server:
   port: ${PORT:8080}
 
 spring:
+  datasource:
+    # 註解：請在 Render 環境變數設定 DATABASE_URL（Neon 提供的 postgresql://...）
+    url: ${DATABASE_URL:}
+  sql:
+    init:
+      mode: always
+      # 註解：確保每次啟動至少會建立表（CREATE IF NOT EXISTS 是安全的）。
+      platform: postgres
   servlet:
     multipart:
       max-file-size: 10MB

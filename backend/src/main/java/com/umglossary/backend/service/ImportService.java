@@ -115,8 +115,8 @@ public class ImportService {
             return new ImportResult(0, errors.size(), null, errors.isEmpty() ? List.of("沒有可匯入的資料") : errors);
         }
 
-        String backupFileName = backupCurrentJsonIfExists();
-        glossaryService.saveToDisk(importedEntries);
+        // 註解：改用 Postgres 後不再備份 JSON 檔；如需備份可在 DB 端做 snapshot。
+        String backupFileName = null;
         glossaryService.replaceAll(importedEntries);
 
         return new ImportResult(importedEntries.size(), errors.size(), backupFileName, errors);
